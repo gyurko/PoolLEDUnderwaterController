@@ -9,6 +9,8 @@
 #ifndef ADC_H_
 #define ADC_H_
 
+#define CPU_TEMP_CHANNEL 0
+#define LED_TEMP_CHANNEL 1
 
 void ADCInit();
 uint16_t ReadTemperatue(uint8_t channel);

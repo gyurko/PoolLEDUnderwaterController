@@ -5,6 +5,7 @@
  *  Author: gyurk
  */ 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "PWM.h"
 #include "Timer.h"
 

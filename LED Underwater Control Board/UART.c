@@ -5,6 +5,7 @@
  *  Author: gyurk
  */ 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include "PWM.h"
@@ -110,11 +111,9 @@ void ProcessReceiveChar(uint8_t c)
 	
 }
 
-#ifdef x
 ISR(USART_RX_vect)
 {
 	uint8_t c;
 	c = UDR0;
 	ProcessReceiveChar(c);
 }
-#endif

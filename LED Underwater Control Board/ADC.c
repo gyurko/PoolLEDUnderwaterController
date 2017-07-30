@@ -5,12 +5,7 @@
 #include <stdint.h>
 #include "adc.h"
 
-/* Which analog pin we want to read from.  The pins are labeled "ADC0"
- * "ADC1" etc on the pinout in the data sheet.  In this case ADC_PIN
- * being 0 means we want to use ADC0.  On the ATmega328P this is also
- * the same as pin PC0 */
-#define CPU_TEMP_PIN 0
-#define LED_TEMP_PIN 0
+
 
 #define _BV(bit) (1 << (bit))
 

@@ -1,11 +1,11 @@
 #include <avr/interrupt.h>
+#include <stdbool.h>
+#include <avr/io.h>
 #include "PWM.h"
 #include "Timer.h"
 #include "UART.h"
 #include "EEPROM.h"
 #include "ADC.h"
-#include <stdbool.h>
-#include <avr/io.h>
 
 extern volatile uint8_t current_red, current_green, current_blue, command;
 extern volatile bool bColorMsgReceived;
@@ -136,19 +136,18 @@ void MainLoop(void)
 	}
 }
 
-uint16_t t;
+uint16_t t1,t2;
 	
 int main (void)
 {
 	InitTimer();
 	InitPWM();
 	InitUART();
-	//sei();
+	ADCInit();
+	sei();
 	
-	t = ReadTemperatue(1);
-	t = ReadTemperatue(2);
-
-	//FlashTemperature(t);
+	t1 = ReadTemperatue(CPU_TEMP_CHANNEL);
+	t2 = ReadTemperatue(LED_TEMP_CHANNEL);
 
 	// set the colors from last time
 	current_red = EEPROM_read(RED_EEPROM_ADDR);
@@ -156,8 +155,6 @@ int main (void)
 	current_blue = EEPROM_read(BLUE_EEPROM_ADDR);
 	
 	ChangeColor(current_red, current_green, current_blue);
-	//ChangeColor(30, 30, 200);
-	//ChangeColor(0, 0, 2);
 	MainLoop();
 }
 
