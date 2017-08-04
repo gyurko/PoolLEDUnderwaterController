@@ -9,24 +9,27 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "PWM.h"
+#include "ADC.h"
 
-// protocol is "<RRR GGG BBB>" @4800
+// protocol is "<C XXX>" @4800 
+// where C is R, G, B, or U   ---- U is send back colors and temperatures
 
 #define START_CHAR '<'
 #define END_CHAR '>'
 
+extern volatile uint8_t current_red, current_green, current_blue;
+extern volatile uint8_t command, command_data;
+extern void UpdateColor(void);
+
 typedef enum 
 {
 	WAIT_FOR_START,
-	WAIT_FOR_R,
-	WAIT_FOR_G,
-	WAIT_FOR_B,
-	WAIT_FOR_COMMAND		
+	WAIT_FOR_COMMAND,
+	WAIT_FOR_DATA
 }state_t;
 
 static state_t state = WAIT_FOR_START;
-uint8_t current_red, current_green, current_blue, command;
-bool bColorMsgReceived = false;
+extern bool bCommandReceived;
 
 void InitUART(void)
 {
@@ -37,78 +40,72 @@ void InitUART(void)
 	UCSR0C = (3<<UCSZ00);
 	// Enable receiver
 	UCSR0B = (1<<RXEN0);
+	// Enable transmitter
+	UCSR0B |= (1<<TXEN0);
 	// enable receive interrupt
 	UCSR0B |= (1<<RXCIE0);
 }
+
 
 void ProcessReceiveChar(uint8_t c)
 {
 	// anytime there's a start char, reset everything
  	if (c == START_CHAR)
 	{
-		current_red = 0;
-		state = WAIT_FOR_R;
+		state = WAIT_FOR_COMMAND;
 	}
-	
-	switch (state)
+	else
 	{
-		case WAIT_FOR_START:
-			break;
-			
-		case WAIT_FOR_R:
-			if (isdigit(c))
-			{
-				current_red *= 10;
-				current_red += (c - 0x30);
-			}
-			else if (c == ' ')
-			{
-				current_green = 0;
-				state = WAIT_FOR_G;
-			}
-			break;
-			
-		case WAIT_FOR_G:
-			if (isdigit(c))
-			{
-				current_green *= 10;
-				current_green += (c - 0x30);
-			}
-			else if (c == ' ')
-			{
-				current_blue = 0;
-				state = WAIT_FOR_B;
-			}
-			break;
-
-		case WAIT_FOR_B:
- 			if (isdigit(c))
-			{
-				current_blue *= 10;
-				current_blue += (c - 0x30);
-			}
-			else if (c == ' ')
-			{
-				command = 0;
-				state = WAIT_FOR_COMMAND;
-			}
-			break;
-			
-		case WAIT_FOR_COMMAND:
- 			if (isdigit(c))
-			{
-				command *= 10;
-				command += (c - 0x30);
-			}
-			else if (c == '>')
-			{
-				bColorMsgReceived = true;
-				state = WAIT_FOR_START;
-			}
-		break;
-
+		switch (state)
+		{
+			case WAIT_FOR_START:
+				break;
+				
+			case WAIT_FOR_COMMAND:
+				if ((!isdigit(c)) && (c != ' ') && (c != '>'))
+				{
+					command = c;
+				}
+				else if (c == ' ')
+				{
+					command_data = 0;
+					state = WAIT_FOR_DATA;
+				}
+				else if (c == END_CHAR)
+				{
+					bCommandReceived = true;
+					state = WAIT_FOR_START;
+				}
+				break;
+		
+			case WAIT_FOR_DATA:
+				if (isdigit(c))
+				{
+					command_data *= 10;
+					command_data += (c - 0x30);
+				}
+				if (c == END_CHAR)
+				{
+					bCommandReceived = true;
+					state = WAIT_FOR_START;
+				}
+				break;
+		}
 	}
 	
+}
+
+void SendString(char* pString)
+{
+	uint8_t i = 0;
+	
+	while (pString[i] != 0)
+	{
+		while ( !( UCSR0A & (1<<UDRE0)) )
+		;
+		UDR0 = pString[i];
+		i++;
+	}
 }
 
 ISR(USART_RX_vect)

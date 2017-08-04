@@ -10,6 +10,7 @@
 #define UART_H_
 
 void InitUART(void);
+void SendString(char* pString);
 
 
 
