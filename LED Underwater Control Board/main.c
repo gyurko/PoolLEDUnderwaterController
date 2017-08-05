@@ -133,7 +133,8 @@ void ProcessCommand(void)
 
 		case 'u':
 		case 'U':
-			sprintf(returnBuf, "<%03d %03d %03d %03d %03d>", current_red, current_green, current_blue, ReadTemperatue(CPU_TEMP_CHANNEL), ReadTemperatue(LED_TEMP_CHANNEL));
+			sprintf(returnBuf, "[%03d %03d %03d %03d %03d]", current_red, current_green, current_blue, ReadTemperatue(CPU_TEMP_CHANNEL), ReadTemperatue(LED_TEMP_CHANNEL));
+			SendString(returnBuf);
 			break;
 	}
 }
