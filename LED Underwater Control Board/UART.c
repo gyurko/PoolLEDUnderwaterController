@@ -19,7 +19,7 @@
 
 extern volatile uint8_t current_red, current_green, current_blue;
 extern volatile uint8_t command, command_data;
-extern void UpdateColor(void);
+extern void SetLEDColor(void);
 
 typedef enum 
 {

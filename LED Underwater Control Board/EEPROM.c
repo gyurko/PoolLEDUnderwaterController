@@ -6,22 +6,27 @@
  */ 
 #include "EEPROM.h"
 #include <avr/io.h>
-
+#include <avr/interrupt.h>
 
 void EEPROM_write(uint16_t uiAddress, uint8_t ucData)
 {
 	// Wait for completion of previous write
 	while(EECR & (1 << EEPE));
 	
-	// Set up address and data registers
+	while(SPMCSR & (1 << SPMEN));
+	
 	EEAR = uiAddress;
 	EEDR = ucData;
 	
+	cli();
+
 	// Write logical one to EEMWE
 	EECR |= (1 << EEMPE);
 	
 	// Start eeprom write by setting EEPE
 	EECR |= (1 << EEPE);
+	
+	sei();
 }
 
 uint8_t EEPROM_read(uint16_t uiAddress)
